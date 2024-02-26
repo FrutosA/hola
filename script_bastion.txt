@@ -32,6 +32,8 @@ iptables -A OUTPUT -p icmp -j ACCEPT
 #iptables -A INPUT -i ens3 -p tcp --sport 443 -j ACCEPT
 iptables -A OUTPUT -p tcp --dport 80 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
 iptables -A INPUT -p tcp --sport 80 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -p tcp --dport 443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -p tcp --sport 443 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
 #10. Permitir conexiones ssh a mi servidor local
 
