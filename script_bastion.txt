@@ -35,7 +35,31 @@ iptables -A INPUT -p tcp --sport 80 -m conntrack --ctstate ESTABLISHED,RELATED -
 iptables -A OUTPUT -p tcp --dport 443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
 iptables -A INPUT -p tcp --sport 443 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
-iptables -t nat -A FORWARDING -o enp0s3 -s 172.2.0.0/24 -j MASQUERADE
+PUERTOS_DMZ=( 80 )
+
+# Tráfico DMZ con el exterior para servicios expuestos en DMZ (80)
+
+for PUERTO in "${PUERTOS_DMZ[@]}"; do
+
+  iptables -A FORWARD -d 172.2.1.2 -o enp0s8 -p tcp --dport $PUERTO -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+
+  iptables -A FORWARD -s 172.2.1.2 -o enp0s3 -p tcp --sport $PUERTO -m conntrack --ctstate ESTABLISHED -j ACCEPT 
+
+done
+
+# Permitir actualizaciones de las máquinas de la DMZ (peticiones http y dns)
+
+  iptables -A FORWARD -i enp0s8 -s 172.2.1.0/24 -p tcp --dport 80 -m conntrack --ctstate  NEW,ESTABLISHED -j ACCEPT
+  iptables -A FORWARD -o enp0s8 -d 172.2.1.0/24 -p tcp --sport 80 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+  iptables -A FORWARD -i enp0s8 -s 172.2.1.0/24 -p tcp --dport 443 -m conntrack --ctstate  NEW,ESTABLISHED -j ACCEPT
+  iptables -A FORWARD -o enp0s8 -d 172.2.1.0/24 -p tcp --sport 443 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+# Permitir actualizaciones de las máquinas de la interna (peticiones http y dns)
+
+  iptables -A FORWARD -i enp0s9 -s 172.2.2.0/24 -p tcp --dport 80 -m conntrack --ctstate  NEW,ESTABLISHED -j ACCEPT
+  iptables -A FORWARD -o enp0s9 -d 172.2.2.0/24 -p tcp --sport 80 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+  iptables -A FORWARD -i enp0s9 -s 172.2.2.0/24 -p tcp --dport 443 -m conntrack --ctstate  NEW,ESTABLISHED -j ACCEPT
+  iptables -A FORWARD -o enp0s9 -d 172.2.2.0/24 -p tcp --sport 443 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
 
 #10. Permitir conexiones ssh a mi servidor local
@@ -56,8 +80,6 @@ iptables -A FORWARD -i enp0s3 -o enp0s9 -p icmp -j ACCEPT
 iptables -A FORWARD -i enp0s9 -o enp0s3 -p tcp -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
 iptables -A FORWARD -i enp0s3 -o enp0s9 -p tcp -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
-#SNAT (Source NAT) para salir al exterior
-iptables -t nat -A POSTROUTING -o enp0s3 -s 172.2.0.0/24 -j MASQUERADE
 
 #15.Conexion a servidor SSH de pc-lan-1
 iptables -t nat -A PREROUTING -p tcp --dport 2022 -j DNAT --to 172.2.2.100:22
