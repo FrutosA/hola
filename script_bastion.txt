@@ -79,7 +79,7 @@ iptables -A INPUT -d 172.2.0.1 -p tcp --sport 22 -m conntrack --ctstate ESTABLIS
 
 #11. Permitir ping a la red interna
 iptables -A FORWARD -i enp0s3 -o enp0s9 -p icmp -j ACCEPT
-iptables -A FORWARD -i enp0s3 -o enp0s3 -p icmp -j ACCEPT
+iptables -A FORWARD -i enp0s9 -o enp0s3 -p icmp -j ACCEPT
 
 #12. Permitir consultas DNS a la red interna
 iptables -A FORWARD -i enp0s9 -o enp0s3 -p icmp -j ACCEPT
