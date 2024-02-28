@@ -46,6 +46,15 @@ for PUERTO in "${PUERTOS_DMZ[@]}"; do
   iptables -A FORWARD -s 172.2.1.2 -o enp0s3 -p tcp --sport $PUERTO -m conntrack --ctstate ESTABLISHED -j ACCEPT 
 
 done
+# Trafico entre la red interna y el DMZ al servicio http.
+
+for PUERTO in "${PUERTOS_DMZ[@]}"; do
+
+  iptables -A FORWARD -d 172.2.2.100 -o enp0s8 -p tcp --dport $PUERTO -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+
+  iptables -A FORWARD -s 172.2.2.100 -o enp0s9 -p tcp --sport $PUERTO -m conntrack --ctstate ESTABLISHED -j ACCEPT 
+
+done
 
 # Permitir actualizaciones de las máquinas de la DMZ (peticiones http y dns)
 
